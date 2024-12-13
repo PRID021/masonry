@@ -58,10 +58,12 @@ header{
     position: relative;
     overflow: hidden;
     width: 100%;
+    border-radius: 2px;
 }
 
 img {
     width: 100%;
+    border-radius: 4px;
 }
 
 .overlay {
@@ -78,6 +80,15 @@ img {
     transition: 0.5s;
 }
 
+.overlay h3 {
+    margin: 16px;
+    overflow: hidden;
+}
+
+.post:hover {
+    transform: scale(1.025);
+    transition: transform 0.25s ease;
+}
 .post:hover .overlay {
 opacity: 1;
 }
