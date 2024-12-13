@@ -1,6 +1,4 @@
-import { config } from "./config.js";
-
-async function fetchImages(page = 1, limit = 50, query = "") {
+async function fetchImages(limit = 20, query = "") {
     try {
 
         const url = `https://api.unsplash.com/photos/random?count=${limit}&query=${query}&client_id=${accessKey}`;
@@ -23,3 +21,4 @@ async function fetchImages(page = 1, limit = 50, query = "") {
         return [];
     }
 }
+

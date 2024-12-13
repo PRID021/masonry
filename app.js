@@ -1,13 +1,36 @@
+
 const container = document.querySelector(".container");
 const loadMoreButton = document.querySelector(".load-more-button");
+
+
+
+
+function getColumnCount() {
+    const width = window.innerWidth;
+    if (width <= 600) {
+        return 1; // 1 column for small screens (mobile)
+    } else if (width <= 900) {
+        return 2; // 2 columns for medium screens (tablet)
+    } else {
+        return 4; // 4 columns for large screens (desktop)
+    }
+}
+
+
+let currentColumnCount = getColumnCount();
+
+
 
 // Global cache to store image heights
 const imageCache = new Map();
 
 // Function to create or update the Masonry Grid
 async function createMasonryGrid(columnCount, initialPosts) {
-    const columnWrapper = Array.from({ length: columnCount }, () => []);
-    const columnHeights = Array(columnCount).fill(0);
+    let columnWrapper = Array.from({ length: columnCount }, () => []);
+    let columnHeights = Array(columnCount).fill(0);
+
+    let currentPosts = initialPosts
+
 
     // Helper function to distribute posts into columns
     async function distributePosts(posts) {
@@ -72,10 +95,17 @@ async function createMasonryGrid(columnCount, initialPosts) {
     renderGrid();
 
     // Return an update function to add more posts
-    return async function updateMasonryGrid(newPosts) {
+    return [async function updateMasonryGrid(newPosts) {
+        currentPosts = [...currentPosts, ...newPosts]
         await distributePosts(newPosts);
         renderGrid(); // Re-render with the new posts included
-    };
+    }, async function resizeGridColumn() {
+        currentColumnCount = getColumnCount();
+        columnWrapper = Array.from({ length: currentColumnCount }, () => []);
+        columnHeights = Array(currentColumnCount).fill(0);
+        await distributePosts(currentPosts)
+        renderGrid();
+    }];
 }
 
 // Helper function to get image height with caching
@@ -98,22 +128,31 @@ function getImageHeight(url) {
     });
 }
 
+
+
+
 // Example Usage
 (async function () {
     const initialPosts = await fetchImages();
-    const updateMasonryGrid = await createMasonryGrid(4, initialPosts);
+    const [updateMasonryGrid, resizeGridColumn] = await createMasonryGrid(currentColumnCount, initialPosts);
 
     // Event listener for "Load More" button
-    // loadMoreButton.addEventListener("click", async () => {
-    //     const morePosts = posts.slice(0, 10); // Load the next 20 posts
+    loadMoreButton.addEventListener("click", async () => {
+        const morePosts = await fetchImages();
+        if (morePosts.length > 0) {
+            await updateMasonryGrid(morePosts);
+        }
+    });
 
-    //     if (morePosts.length > 0) {
-    //         await updateMasonryGrid(morePosts);
-    //     }
 
-    //     // Hide the button if no more posts are available
-    //     if (start + 10 >= posts.length) {
-    //         loadMoreButton.style.display = "none";
-    //     }
-    // });
+
+    // Handle window resizing to update the grid when screen size changes
+    window.addEventListener('resize', async () => {
+        if (currentColumnCount !== getColumnCount()) {
+            resizeGridColumn()
+        }
+    });
 })();
+
+
+
