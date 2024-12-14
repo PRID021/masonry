@@ -131,20 +131,11 @@ function getImageHeight(url) {
 
 
 
+
 // Example Usage
 (async function () {
     const initialPosts = await fetchImages();
     const [updateMasonryGrid, resizeGridColumn] = await createMasonryGrid(currentColumnCount, initialPosts);
-
-    // Event listener for "Load More" button
-    loadMoreButton.addEventListener("click", async () => {
-        const morePosts = await fetchImages();
-        if (morePosts.length > 0) {
-            await updateMasonryGrid(morePosts);
-        }
-    });
-
-
 
     // Handle window resizing to update the grid when screen size changes
     window.addEventListener('resize', async () => {
@@ -152,7 +143,30 @@ function getImageHeight(url) {
             resizeGridColumn()
         }
     });
+
+    let isLoading = false;
+    document.body.addEventListener('scroll', async () => {
+        if (isLoading) return
+        isLoading = true
+        const scrollableHeight = document.body.scrollHeight;
+        const scrollPosition = document.body.scrollTop + window.innerHeight;
+        // Define a threshold (e.g., 100px from the bottom)
+        const threshold = 300;
+        if (scrollPosition >= scrollableHeight - threshold) {
+            const morePosts = await fetchImages();
+            if (morePosts.length > 0) {
+                await updateMasonryGrid(morePosts);
+            }
+        }
+        isLoading = false
+    });
+
+
 })();
+
+
+
+
 
 
 
